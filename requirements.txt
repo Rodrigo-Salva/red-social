@@ -11,3 +11,6 @@ sqlmodel
 alembic
 psycopg2-binary
 fastapi-mail
+pyotp
+qrcode
+Pillow
