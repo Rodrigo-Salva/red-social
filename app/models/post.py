@@ -20,6 +20,9 @@ class Post(Base):
     
     # Usuarios que le dieron like
     liked_by = relationship("User", secondary=likes, backref="liked_posts")
+    
+    # Hashtags asociados
+    hashtags = relationship("Hashtag", secondary="post_hashtags", back_populates="posts")
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -32,3 +35,6 @@ class Comment(Base):
 
     owner = relationship("User", backref="comments")
     post = relationship("Post", back_populates="comments")
+    
+    # Hashtags asociados
+    hashtags = relationship("Hashtag", secondary="comment_hashtags", back_populates="comments")
