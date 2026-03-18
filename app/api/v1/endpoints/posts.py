@@ -34,18 +34,24 @@ def read_posts(
     )
     return posts
 
-@router.get("/search", response_model=List[schemas.post.Post])
-def search_posts(
-    q: str,
+    return posts
+
+@router.get("/hashtag/{tag}", response_model=List[schemas.post.Post])
+def read_posts_by_hashtag(
+    tag: str,
     db: Session = Depends(deps.get_db),
+    current_user: Optional[models.user.User] = Depends(deps.get_current_user_optional),
+    skip: int = 0,
+    limit: int = 100,
 ) -> Any:
     """
-    Buscar publicaciones por título o contenido.
+    Recuperar publicaciones por hashtag.
     """
-    posts = db.query(models.user.Post).filter(
-        (models.user.Post.title.ilike(f"%{q}%")) |
-        (models.user.Post.content.ilike(f"%{q}%"))
-    ).limit(10).all()
+    from app.models.hashtag import Hashtag, post_hashtags
+    posts = db.query(models.user.Post).join(post_hashtags).join(Hashtag).filter(
+        Hashtag.tag == tag.lower(),
+        models.user.Post.is_deleted == False
+    ).offset(skip).limit(limit).all()
     return posts
 
 from app.core import pagination
