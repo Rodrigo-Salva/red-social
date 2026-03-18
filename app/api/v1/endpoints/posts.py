@@ -11,6 +11,7 @@ router = APIRouter()
 @router.get("/", response_model=List[schemas.post.Post])
 def read_posts(
     db: Session = Depends(deps.get_db),
+    current_user: Optional[models.user.User] = Depends(deps.get_current_user_optional),
     skip: int = 0,
     limit: int = 100,
     only_images: bool = False,
@@ -23,6 +24,7 @@ def read_posts(
     """
     posts = crud.crud_post.get_posts(
         db, 
+        current_user_id=current_user.id if current_user else None,
         skip=skip, 
         limit=limit, 
         only_images=only_images,

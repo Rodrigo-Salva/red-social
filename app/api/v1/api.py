@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, users, posts, notifications, notification_api, admin, messages, reports, sessions, two_factor
+from app.api.v1.endpoints import auth, users, posts, notifications, notification_api, admin, messages, reports, sessions, two_factor, blocks, privacy
 
 api_router = APIRouter()
 
@@ -13,3 +13,5 @@ api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
 api_router.include_router(sessions.router, prefix="/sessions", tags=["sessions"])
 api_router.include_router(notifications.router, tags=["notifications"])
 api_router.include_router(notification_api.router, prefix="/notifications", tags=["notifications_history"])
+api_router.include_router(blocks.router, prefix="/blocks", tags=["blocks"])
+api_router.include_router(privacy.router, prefix="/privacy", tags=["privacy"])
