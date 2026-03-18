@@ -5,6 +5,8 @@ from sqlalchemy import func, desc, and_
 from app.models.user import User
 from app.models.post import Post
 from app.schemas.post import PostCreate
+from app.core.text_parser import extract_hashtags, extract_mentions
+from app.models.hashtag import Hashtag
 
 def get_posts(
     db: Session, 
@@ -62,8 +64,38 @@ def get_posts(
 def create_user_post(db: Session, post: PostCreate, owner_id: int):
     db_post = Post(**post.dict(), owner_id=owner_id)
     db.add(db_post)
+    
+    # Procesar Hashtags
+    tags = extract_hashtags(post.content)
+    for tag in tags:
+        hashtag = db.query(Hashtag).filter(Hashtag.tag == tag).first()
+        if not hashtag:
+            hashtag = Hashtag(tag=tag)
+            db.add(hashtag)
+            db.flush()
+        db_post.hashtags.append(hashtag)
+        
     db.commit()
     db.refresh(db_post)
+    
+    # Procesar Menciones
+    from app.crud.crud_user import get_user_by_username
+    from app.crud.crud_notification import create_notification
+    from app.schemas.notification import NotificationCreate
+    
+    usernames = extract_mentions(post.content)
+    for username in usernames:
+        user = get_user_by_username(db, username=username)
+        if user and user.id != owner_id:
+            notification_in = NotificationCreate(
+                recipient_id=user.id,
+                sender_id=owner_id,
+                type="mention",
+                message=f"Te han mencionado en un post",
+                post_id=db_post.id
+            )
+            create_notification(db, notification=notification_in)
+            
     return db_post
 
 def get_post(db: Session, post_id: int):

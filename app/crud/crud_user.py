@@ -6,6 +6,11 @@ from app.core.security import get_password_hash
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email, User.is_deleted == False).first()
 
+def get_user_by_username(db: Session, username: str):
+    # Asumimos que full_name se está usando como username o deberíamos tener un campo username.
+    # Por ahora buscamos en full_name de manera exacta (o similar).
+    return db.query(User).filter(User.full_name == username, User.is_deleted == False).first()
+
 def get(db: Session, id: int):
     return db.query(User).filter(User.id == id, User.is_deleted == False).first()
 
