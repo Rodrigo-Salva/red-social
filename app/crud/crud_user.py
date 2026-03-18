@@ -37,6 +37,10 @@ def create_user(db: Session, user: UserCreate):
     return db_user
 
 def follow_user(db: Session, follower: User, to_follow: User):
+    if to_follow.is_private:
+        from app.crud.crud_follow_request import create_follow_request
+        return create_follow_request(db, requester_id=follower.id, recipient_id=to_follow.id)
+    
     if to_follow not in follower.following:
         follower.following.append(to_follow)
         db.commit()

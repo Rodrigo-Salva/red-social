@@ -2,11 +2,13 @@ from datetime import datetime
 from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, and_
-from app.models.user import User, Post
+from app.models.user import User
+from app.models.post import Post
 from app.schemas.post import PostCreate
 
 def get_posts(
     db: Session, 
+    current_user_id: Optional[int] = None,
     skip: int = 0, 
     limit: int = 100, 
     only_images: bool = False,
@@ -14,7 +16,29 @@ def get_posts(
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None
 ):
-    query = db.query(Post).filter(Post.is_deleted == False)
+    from app.models.block import Block
+    query = db.query(Post).join(User, Post.owner_id == User.id).filter(Post.is_deleted == False)
+    
+    # Excluir posts de usuarios privados (a menos que los sigas, pero en 'descubrir' usualmente no se muestran)
+    # Por ahora, si no hay current_user_id, solo mostrar públicos.
+    if current_user_id:
+        # Excluir bloqueados
+        blocked_ids = db.query(Block.blocked_id).filter(Block.blocker_id == current_user_id)
+        blocker_ids = db.query(Block.blocker_id).filter(Block.blocked_id == current_user_id)
+        query = query.filter(~Post.owner_id.in_(blocked_ids))
+        query = query.filter(~Post.owner_id.in_(blocker_ids))
+        
+        # Mostrar mis propios posts, posts de gente que sigo (aunque sean privados), y posts públicos de otros.
+        from app.models.user import followers
+        is_following = db.query(followers.c.followed_id).filter(followers.c.follower_id == current_user_id)
+        
+        query = query.filter(
+            (User.is_private == False) | 
+            (Post.owner_id == current_user_id) |
+            (Post.owner_id.in_(is_following))
+        )
+    else:
+        query = query.filter(User.is_private == False)
     
     if only_images:
         query = query.filter(Post.image_url != None)
@@ -54,19 +78,34 @@ def delete_post(db: Session, post_id: int):
     return db_post
 
 def get_feed(db: Session, user: User, skip: int = 0, limit: int = 10):
+    from app.models.block import Block
     followed_ids = [u.id for u in user.following]
     followed_ids.append(user.id)
+    
+    # Excluir usuarios que me han bloqueado o que yo he bloqueado
+    blocked_ids = db.query(Block.blocked_id).filter(Block.blocker_id == user.id)
+    blocker_ids = db.query(Block.blocker_id).filter(Block.blocked_id == user.id)
+    
     return db.query(Post).filter(
         Post.is_deleted == False,
-        Post.owner_id.in_(followed_ids)
+        Post.owner_id.in_(followed_ids),
+        ~Post.owner_id.in_(blocked_ids),
+        ~Post.owner_id.in_(blocker_ids)
     ).order_by(Post.created_at.desc()).offset(skip).limit(limit).all()
 
 def get_feed_count(db: Session, user: User) -> int:
+    from app.models.block import Block
     followed_ids = [u.id for u in user.following]
     followed_ids.append(user.id)
+    
+    blocked_ids = db.query(Block.blocked_id).filter(Block.blocker_id == user.id)
+    blocker_ids = db.query(Block.blocker_id).filter(Block.blocked_id == user.id)
+    
     return db.query(Post).filter(
         Post.is_deleted == False,
-        Post.owner_id.in_(followed_ids)
+        Post.owner_id.in_(followed_ids),
+        ~Post.owner_id.in_(blocked_ids),
+        ~Post.owner_id.in_(blocker_ids)
     ).count()
 
 def like_post(db: Session, user: User, post: Post):
