@@ -32,6 +32,7 @@ class User(Base):
     profile_image = Column(String, nullable=True)
     two_factor_secret = Column(String, nullable=True)
     is_two_factor_enabled = Column(Boolean(), default=False)
+    is_private = Column(Boolean(), default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     posts = relationship("Post", back_populates="owner")
@@ -45,15 +46,3 @@ class User(Base):
         secondaryjoin=(id == followers.c.followed_id),
         backref="followers"
     )
-
-class Post(Base):
-    __tablename__ = "posts"
-
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    content = Column(String, nullable=False)
-    owner_id = Column(Integer, ForeignKey("users.id"))
-    is_deleted = Column(Boolean(), default=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-
-    owner = relationship("User", back_populates="posts")

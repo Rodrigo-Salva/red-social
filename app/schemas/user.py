@@ -7,6 +7,7 @@ class UserBase(BaseModel):
     is_active: Optional[bool] = True
     full_name: Optional[str] = None
     profile_image: Optional[str] = None
+    is_private: Optional[bool] = False
 
 # Para crear usuario (password requerido)
 class UserCreate(UserBase):
@@ -21,6 +22,7 @@ class UserUpdate(UserBase):
 class User(UserBase):
     id: int
     is_two_factor_enabled: bool = False
+    is_private: bool = False
 
     class Config:
         from_attributes = True
