@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
@@ -12,6 +12,10 @@ from app.db.session import SessionLocal
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.PROJECT_NAME}/api/v1/auth/login/access-token"
+)
+reusable_oauth2_optional = OAuth2PasswordBearer(
+    tokenUrl=f"{settings.PROJECT_NAME}/api/v1/auth/login/access-token",
+    auto_error=False
 )
 
 def get_db() -> Generator:
@@ -57,6 +61,33 @@ def get_current_user(
         )
         
     return user
+
+def get_current_user_optional(
+    db: Session = Depends(get_db), token: Optional[str] = Depends(reusable_oauth2_optional)
+) -> Optional[models.user.User]:
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
+        token_data = schemas.token.TokenPayload(**payload)
+        user = db.query(models.user.User).filter(models.user.User.id == token_data.sub, models.user.User.is_deleted == False).first()
+        if not user:
+            return None
+            
+        # Verificar sesión
+        from app.models.session import UserSession
+        session_val = db.query(UserSession).filter(
+            UserSession.token_jti == token_data.jti
+        ).first()
+        
+        if not session_val or not session_val.is_active:
+            return None
+            
+        return user
+    except Exception:
+        return None
 
 def get_current_active_superuser(
     current_user: models.user.User = Depends(get_current_user),
