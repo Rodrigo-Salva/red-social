@@ -54,8 +54,8 @@ def upload_profile_image(
     """
     Subir imagen de perfil.
     """
-    image_url = utils.save_upload_file(file, "uploads/profile_images")
-    current_user.profile_image = image_url
+    media = utils.save_upload_file(file, "uploads/profile_images")
+    current_user.profile_image = media["image_url"]
     db.add(current_user)
     db.commit()
     db.refresh(current_user)

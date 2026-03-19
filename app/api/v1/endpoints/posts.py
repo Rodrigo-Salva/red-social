@@ -87,10 +87,18 @@ def create_post(
     Crear nueva publicación con imagen opcional.
     """
     image_url = None
+    thumbnail_url = None
     if file:
-        image_url = utils.save_upload_file(file, "uploads/post_images")
+        media = utils.save_upload_file(file, "uploads/post_images")
+        image_url = media["image_url"]
+        thumbnail_url = media["thumbnail_url"]
     
-    post_in = schemas.post.PostCreate(title=title, content=content, image_url=image_url)
+    post_in = schemas.post.PostCreate(
+        title=title, 
+        content=content, 
+        image_url=image_url,
+        thumbnail_url=thumbnail_url
+    )
     post = crud.crud_post.create_user_post(db=db, post=post_in, owner_id=current_user.id)
     return post
 

@@ -6,12 +6,14 @@ class PostBase(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
     image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
 
 # Para crear post
 class PostCreate(PostBase):
     title: str = Field(...)
     content: str = Field(...)
     image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
 
 # Esquema para Comentarios
 class CommentBase(BaseModel):
