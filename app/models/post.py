@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.db.base import Base
+from app.db.session import Base
 from app.models.user import likes
 
 class Post(Base):
@@ -11,6 +11,7 @@ class Post(Base):
     title = Column(String, index=True)
     content = Column(String, nullable=False)
     image_url = Column(String, nullable=True)
+    thumbnail_url = Column(String, nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
     is_deleted = Column(Boolean(), default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

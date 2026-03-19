@@ -6,3 +6,5 @@ from app.models.notification import Notification
 from app.models.message import Message
 from app.models.report import Report
 from app.models.session import UserSession
+from app.models.story import Story
+from app.models.analytics import PostView
