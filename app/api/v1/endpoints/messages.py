@@ -58,7 +58,21 @@ def get_chat(
     """
     Obtener la conversación con un usuario específico.
     """
-    crud.crud_message.mark_as_read(db, user_id=current_user.id, sender_id=other_user_id)
+    count = crud.crud_message.mark_as_read(db, user_id=current_user.id, sender_id=other_user_id)
+    
+    # Notificar al remitente que sus mensajes han sido leídos
+    if count > 0:
+        from app.core.notifications import manager
+        import asyncio
+        asyncio.create_task(manager.send_personal_message(
+            {
+                "type": "read_receipt",
+                "reader_id": current_user.id,
+                "count": count
+            },
+            user_id=other_user_id
+        ))
+
     messages = crud.crud_message.get_messages(
         db, user_id=current_user.id, other_user_id=other_user_id, skip=skip, limit=limit
     )

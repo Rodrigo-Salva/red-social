@@ -29,13 +29,17 @@ def get_conversations(db: Session, user_id: int):
         or_(Message.sender_id == user_id, Message.recipient_id == user_id)
     ).order_by(Message.created_at.desc()).all()
 
+from datetime import datetime
+
 def mark_as_read(db: Session, user_id: int, sender_id: int):
     messages = db.query(Message).filter(
         Message.recipient_id == user_id,
         Message.sender_id == sender_id,
         Message.is_read == False
     ).all()
+    now = datetime.now()
     for msg in messages:
         msg.is_read = True
+        msg.read_at = now
     db.commit()
     return len(messages)

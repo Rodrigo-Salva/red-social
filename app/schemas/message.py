@@ -13,6 +13,7 @@ class MessageCreate(MessageBase):
 # Properties to receive on message update
 class MessageUpdate(MessageBase):
     is_read: Optional[bool] = None
+    read_at: Optional[datetime] = None
 
 # Properties shared by models stored in DB
 class MessageInDBBase(MessageBase):
@@ -20,6 +21,7 @@ class MessageInDBBase(MessageBase):
     sender_id: int
     recipient_id: int
     is_read: bool
+    read_at: Optional[datetime]
     created_at: datetime
 
     class Config:
