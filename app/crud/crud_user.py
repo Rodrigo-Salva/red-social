@@ -7,9 +7,7 @@ def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email, User.is_deleted == False).first()
 
 def get_user_by_username(db: Session, username: str):
-    # Asumimos que full_name se está usando como username o deberíamos tener un campo username.
-    # Por ahora buscamos en full_name de manera exacta (o similar).
-    return db.query(User).filter(User.full_name == username, User.is_deleted == False).first()
+    return db.query(User).filter(User.username == username, User.is_deleted == False).first()
 
 def get(db: Session, id: int):
     return db.query(User).filter(User.id == id, User.is_deleted == False).first()
@@ -33,6 +31,7 @@ def create_user(db: Session, user: UserCreate):
     hashed_password = get_password_hash(user.password)
     db_user = User(
         email=user.email,
+        username=user.username,
         full_name=user.full_name,
         hashed_password=hashed_password
     )

@@ -35,7 +35,7 @@ def get_current_user(
         token_data = schemas.token.TokenPayload(**payload)
     except (jwt.JWTError, ValidationError):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="No se pudo validar las credenciales",
         )
     user = db.query(models.user.User).filter(models.user.User.id == token_data.sub, models.user.User.is_deleted == False).first()
