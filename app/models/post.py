@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.ext.hybrid import hybrid_property
 from app.db.session import Base
 from app.models.user import likes
 
@@ -18,9 +19,19 @@ class Post(Base):
 
     owner = relationship("User", back_populates="posts")
     comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
+    poll = relationship("Poll", back_populates="post", uselist=False, cascade="all, delete-orphan")
+
     
     # Usuarios que le dieron like
     liked_by = relationship("User", secondary=likes, backref="liked_posts")
+    
+    @hybrid_property
+    def likes_count(self) -> int:
+        return len(self.liked_by)
+    
+    @hybrid_property
+    def comments_count(self) -> int:
+        return len(self.comments)
     
     # Hashtags asociados
     hashtags = relationship("Hashtag", secondary="post_hashtags", back_populates="posts")

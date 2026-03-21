@@ -1,5 +1,6 @@
 from typing import Optional, List
 from pydantic import BaseModel, Field
+from app.schemas.poll import Poll
 
 # Esquema compartido
 class PostBase(BaseModel):
@@ -36,13 +37,7 @@ class Post(PostBase):
     owner_id: int
     likes_count: int = 0
     comments: List[Comment] = []
-
-    @classmethod
-    def from_orm(cls, obj):
-        # Mapeo manual si es necesario o usar computed fields
-        data = super().from_orm(obj)
-        data.likes_count = len(obj.liked_by)
-        return data
+    poll: Optional[Poll] = None
 
     class Config:
         from_attributes = True

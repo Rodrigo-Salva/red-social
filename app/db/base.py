@@ -8,3 +8,6 @@ from app.models.report import Report
 from app.models.session import UserSession
 from app.models.story import Story
 from app.models.analytics import PostView
+from app.models.poll import Poll, PollOption, PollVote
+from app.models.block import Block
+from app.models.hashtag import Hashtag
